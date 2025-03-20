@@ -1,0 +1,14 @@
+#version de la syntaxe docker-compose
+version: '3'
+
+#Un service représente un conteneur en cours d'exécution.
+services:
+  #nom du service
+  http-server:
+    # indiquer à docker-compose de construire une image à partir du DockerFile situé dans la racine du projet
+    build: .
+    # Exposition du port 8000 du conteneur sur le port 8000 de la machine hôte
+    ports:
+      - "8000:8000"
+    #Le conteneur redémarrera automatiquement en cas de panne, sauf s'il a été explicitement arrêté par l'utilisateur.
+    restart: unless-stopped
