@@ -20,11 +20,11 @@ basic-docker-project/
 
 ## Exécution du projet
 
-### Méthode 1: Avec Docker Compose (recommandée)
+### Méthode 1: Avec Docker Compose 
 
 Clonez ce dépôt et accédez au répertoire du projet:
 ```bash
-git clone <url-du-dépôt>
+git clone "https://github.com/zometh/basic-docker-project.git"
 cd basic-docker-project
 ```
 
@@ -58,7 +58,7 @@ docker rm http-server
 
 ## Accès à l'application
 
-Une fois le serveur démarré, accédez à l'application via votre navigateur à l'adresse:
+Après avoir démarrer le serveur, accédez à l'application via votre navigateur à l'adresse:
 ```
 http://localhost:8000
 ```
@@ -92,11 +92,82 @@ docker run -d -p 8000:8000 zomethdev/http-server-min:latest
 
 ## Partie C: Pipeline CI/CD pour l'automatisation
 
-Un pipeline CI/CD a été configuré pour automatiser la construction et le push de l'image Docker vers DockerHub à chaque modification du code source sur la branche principale.
+Cette partie est la mise en place d'un pipeline CI/CD pour automatiser la construction et le push de l’image Docker vers DockerHub à chaque modification du code source
 
-Le pipeline est implémenté avec GitHub Actions et utilise des secrets pour sécuriser l'authentification DockerHub.
-
-Pour utiliser la dernière version de l'image publiée automatiquement:
-```bash
-docker pull zomethdev/http-server-min:latest
+## Structure du projet
 ```
+basic-docker-project/
+    ├── app/
+    │   ├── server.py
+    ├── Dockerfile
+    ├── docker-compose.yml
+    ├── .github/workflows/docker-publish.yml
+    └── README.md
+```
+## Prérequis
+Avant d'exécuter le pipeline, assure-toi d’avoir :
+
+Un compte DockerHub.
+
+Un repository DockerHub (ex: zomethdev/http-server-min).
+
+Un dépôt GitHub connecté à DockerHub.
+
+Ajouté tes identifiants DockerHub comme secrets GitHub :
+
+DOCKER_USERNAME → Ton nom d’utilisateur DockerHub.
+
+DOCKER_PASSWORD → Ton mot de passe DockerHub (ou un token d’accès personnel).
+
+## Contenu du fichier.github/workflows/docker-publish.yml
+
+```
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/http-server-min:latest
+```
+
+## push du fichier  fichier.github/workflows/docker-publish.yml
+
+```
+git add .github/workflows/docker-publish.yml
+git commit "Ajout du pipeline"
+git push origin main
+```
+Après avoir ajouté le pipeline, on pourra modifier notre fichier server.py et tester si notre pipeline marche correctement.
+Pour cela on tape la commande suivante pour cloner l'image depuis docker hub
+
+```
+docker pull zomethdev/http-server-min:latest
+
+```
+
+## test du server
+```
+docker run -d -p 8000:8000 zomethdev/http-server-min:latest
+localhost:8000 //depuis le navigateur
+```
+Si notre pipeline fonctionne normalement, on verra les changements effectués récemment.
